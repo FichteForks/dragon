@@ -105,6 +105,12 @@ void drag_data_get(GtkWidget    *widget,
     }
 }
 
+void drag_data_delete(GtkWidget *widget, GdkDragContext *context, gpointer user_data) {
+    if (verbose)
+        fputs("Received request to delete dragged data\n", stderr);
+    // TODO what exactly?
+}
+
 void drag_end(GtkWidget *widget, GdkDragContext *context, gpointer user_data) {
     if (verbose) {
         gboolean succeeded = gdk_drag_drop_succeeded(context);
@@ -146,14 +152,16 @@ GtkButton *add_button(char *label, struct draggable_thing *dragdata, int type) {
         gtk_target_list_add_text_targets(targetlist, TARGET_TYPE_TEXT);
 
     gtk_drag_source_set(GTK_WIDGET(button), GDK_BUTTON1_MASK, NULL, 0,
-            GDK_ACTION_COPY | GDK_ACTION_LINK | GDK_ACTION_ASK);
+            GDK_ACTION_COPY | GDK_ACTION_MOVE | GDK_ACTION_LINK | GDK_ACTION_ASK);
     gtk_drag_source_set_target_list(GTK_WIDGET(button), targetlist);
     g_signal_connect(GTK_WIDGET(button), "drag-data-get",
             G_CALLBACK(drag_data_get), dragdata);
-    g_signal_connect(GTK_WIDGET(button), "clicked",
-            G_CALLBACK(button_clicked), dragdata);
+    g_signal_connect(GTK_WIDGET(button), "drag-data-delete",
+            G_CALLBACK(drag_data_delete), dragdata);
     g_signal_connect(GTK_WIDGET(button), "drag-end",
             G_CALLBACK(drag_end), dragdata);
+    g_signal_connect(GTK_WIDGET(button), "clicked",
+            G_CALLBACK(button_clicked), dragdata);
 
     gtk_container_add(GTK_CONTAINER(vbox), button);
 
